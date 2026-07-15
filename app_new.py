@@ -12,7 +12,7 @@ def cargar_modelo():
 
 # Cargamos el clasificador
 classifier = cargar_modelo()
-CATEGORIAS = ["Depto. Hardware", "Depto. Software", "Depto. Redes", "Invalido"]
+CATEGORIAS = ["Depto. Hardware", "Depto. Software", "Depto. Redes"]
 
 st.title("Sistema Inteligente de Soporte Tecnico")
 st.write("Subí un archivo CSV con tus requerimientos. El sistema limpiará los datos y asignará el área correspondiente usando IA local.")
