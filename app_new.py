@@ -1,4 +1,3 @@
-import io
 import streamlit as st
 import pandas as pd
 from transformers import pipeline
@@ -12,9 +11,9 @@ def cargar_modelo():
 
 # Cargamos el clasificador
 classifier = cargar_modelo()
-CATEGORIAS = ["Depto. Hardware", "Depto. Software", "Depto. Redes",]
+CATEGORIAS = ["Hardware", "Software", "Redes"]
 
-st.title("🎫 Sistema Inteligente de Soporte Tecnico")
+st.title("🎫 Sistema Inteligente de Soporte (Procesamiento Local)")
 st.write("Subí un archivo CSV con tus requerimientos. El sistema limpiará los datos y asignará el área correspondiente usando IA local.")
 
 # Carga de archivo CSV
@@ -51,15 +50,9 @@ if uploaded_file is not None:
                     st.success("¡Análisis completado!")
                     st.dataframe(df)
                     
-                    # Descarga de resultados en UTF-8 (con BOM para compatibilidad con Excel)
-                    csv_buffer = io.BytesIO()
-                    df.to_csv(csv_buffer, index=False, encoding='utf-8-sig')
-                    st.download_button(
-                        "📥 Descargar CSV Clasificado",
-                        csv_buffer.getvalue(),
-                        "tickets_soporte_ia.csv",
-                        "text/csv; charset=utf-8",
-                    )
+                    # Descarga de resultados[cite: 3]
+                    csv = df.to_csv(index=False).encode('utf-8')
+                    st.download_button("📥 Descargar CSV Clasificado", csv, "tickets_soporte_ia.csv", "text/csv")
         else:
             st.error(f"El archivo debe contener una columna llamada '{target_col}'.")
             
