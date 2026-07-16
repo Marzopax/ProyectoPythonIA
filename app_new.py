@@ -27,11 +27,11 @@ CATEGORIAS_DESC = {
     "Hardware": "Falla física de un equipo o dispositivo: impresora, computadora, monitor, teclado, mouse, cable, "
                 "escáner o periférico que no enciende, no responde, hace ruido, se traba o está roto físicamente",
     "Software": "Falla de un programa o aplicación instalada: error al abrir, se cierra solo, licencia vencida, "
-                "actualización fallida, mensaje de error en pantalla, problema al instalar un programa",
+                "actualización fallida, mensaje de error en pantalla, problema al instalar un programa,
+                "problemas de inicio de sesión, usuario o contraseña: no puede loguearse, olvidó la "
+                "contraseña, cuenta bloqueada, permisos de acceso denegados, correo que no llega",
     "Redes": "Falla de conectividad: sin acceso a internet, wifi que no conecta, VPN caída, conexión lenta o "
              "intermitente, el router o módem sin luces o sin señal",
-    "Cuentas y Accesos": "Problemas de inicio de sesión, usuario o contraseña: no puede loguearse, olvidó la "
-                          "contraseña, cuenta bloqueada, permisos de acceso denegados, correo que no llega",
 }
 CATEGORIAS_LABELS = list(CATEGORIAS_DESC.keys())       # Nombres cortos (para mostrar en el resultado)
 CATEGORIAS_HIPOTESIS = list(CATEGORIAS_DESC.values())  # Descripciones largas (para alimentar al modelo)
