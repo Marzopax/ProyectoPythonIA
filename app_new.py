@@ -16,25 +16,26 @@ CATEGORIAS_DESC = {
 CATEGORIAS_LABELS = list(CATEGORIAS_DESC.keys())
 CATEGORIAS_HIPOTESIS = list(CATEGORIAS_DESC.values())
 
-st.title("🎫 Sistema Inteligente de Soporte (Procesamiento Local)")
-st.write("Subí un archivo CSV con tus requerimientos. El sistema limpiará los datos y asignará el área correspondiente usando IA local.")
+st.title("Sistema Inteligente de Soporte")
+st.write("Subi un CSV, el sistema lo limpiara y organizara")
+st.write("Con los sliders podes controlar los umbrales y longitud para filtrar descripcion")
 
 col1, col2, col3 = st.columns(3)
 with col1:
     UMBRAL_CONFIANZA = st.slider(
-        "🎚️ Umbral confianza (normales)",
+        "Umbral confianza (normales)",
         min_value=0.0, max_value=1.0, value=0.4, step=0.05,
         help="Aplica a descripciones iguales o más largas que el umbral de longitud."
     )
 with col2:
     UMBRAL_CORTO = st.slider(
-        "🎚️ Umbral confianza (cortas)",
+        "Umbral confianza (cortas)",
         min_value=0.0, max_value=1.0, value=0.25, step=0.05,
         help="Aplica a descripciones más cortas que el umbral de longitud."
     )
 with col3:
     LONGITUD_CORTA = st.slider(
-        "📏 Umbral de longitud (caracteres)",
+        "Umbral de longitud (caracteres)",
         min_value=0, max_value=50, value=10, step=1,
         help="Descripciones con menos caracteres que este valor se consideran 'cortas' y usan el umbral de confianza correspondiente."
     )
