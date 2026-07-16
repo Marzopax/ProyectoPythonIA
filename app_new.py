@@ -75,6 +75,18 @@ with col3:
 # CARGA DEL ARCHIVO CSV
 # ============================================================
 
+def reparar_mojibake(texto):
+    # Corrige texto UTF-8 que fue mal decodificado como Latin-1 en el origen
+    # del archivo (patrón típico: 'secretarÃ­a' en vez de 'secretaría',
+    # 'extraÃ±o' en vez de 'extraño'). Esto ocurre cuando el CSV ya viene
+    # corrupto de otro sistema, antes de llegar a esta app.
+    # Si el texto ya está bien codificado, encode('latin1') produce bytes
+    # que no forman UTF-8 válido y decode('utf-8') falla -> se deja igual.
+    try:
+        return texto.encode('latin1').decode('utf-8')
+    except (UnicodeDecodeError, UnicodeEncodeError):
+        return texto
+
 uploaded_file = st.file_uploader("Subir archivo de requerimientos (CSV)", type=["csv"])
 
 if uploaded_file is not None:
@@ -90,6 +102,7 @@ if uploaded_file is not None:
         if target_col in df.columns:
 
             # -------------------- LIMPIEZA CON PANDAS --------------------
+            df[target_col] = df[target_col].astype(str).apply(reparar_mojibake)  # repara mojibake heredado del origen
             df.dropna(subset=[target_col], inplace=True)          # elimina filas sin descripción
             df.drop_duplicates(subset=[target_col], inplace=True) # elimina descripciones duplicadas
             df[target_col] = df[target_col].astype(str).str.strip()  # recorta espacios sobrantes
