@@ -13,16 +13,19 @@ def cargar_modelo():
 classifier = cargar_modelo()
 
 # ============================================================
-# CATEGORÍAS DE CLASIFICACIÓN (Optimizadas para Zero-Shot)
+# CATEGORÍAS DE CLASIFICACIÓN (Lenguaje Natural)
 # ============================================================
 
-# Se usan etiquetas cortas para que el modelo no se sature de texto.
-# La opción "Otros (No Informática)" actuará como trampa para los tickets basura.
-CATEGORIAS_LABELS = [
-    "Falla de Hardware (Equipos físicos)", 
-    "Falla de Software (Programas)", 
-    "Otros (No Informática / Infraestructura / Redes)"
-]
+# Usamos frases descriptivas claras. Esto evita que el modelo 
+# confunda "Hardware" con ferretería/plomería.
+CATEGORIAS_DESC = {
+    "Hardware": "un problema físico con una computadora, teclado, monitor, impresora o equipo informático.",
+    "Software": "un error en un programa, aplicación, sistema operativo, base de datos o licencia.",
+    "Otros": "un problema de internet, wifi, cables de red, o temas de mantenimiento general como plomería, limpieza o infraestructura edilicia."
+}
+
+CATEGORIAS_LABELS = list(CATEGORIAS_DESC.keys())
+CATEGORIAS_HIPOTESIS = list(CATEGORIAS_DESC.values())
 
 # ============================================================
 # INTERFAZ
@@ -82,20 +85,16 @@ if uploaded_file is not None:
                     def clasificar_texto(texto):
                         res = classifier(
                             texto,
-                            CATEGORIAS_LABELS,
-                            multi_label=False, # CORRECCIÓN: Obliga a las categorías a competir
-                            hypothesis_template="Este reclamo de soporte técnico trata sobre: {}."
+                            CATEGORIAS_HIPOTESIS, # Pasamos la frase completa
+                            multi_label=False,    # Compiten entre sí
+                            hypothesis_template="El problema principal descrito es {}"
                         )
                         mejor_hipotesis = res['labels'][0]
                         mejor_score = res['scores'][0]
                         
-                        # Simplificación para el DataFrame
-                        if "Hardware" in mejor_hipotesis:
-                            categoria = "Hardware"
-                        elif "Software" in mejor_hipotesis:
-                            categoria = "Software"
-                        else:
-                            categoria = "Otros"
+                        # Mapeamos la frase larga ganadora de vuelta a la etiqueta corta ("Hardware", "Software", "Otros")
+                        idx = CATEGORIAS_HIPOTESIS.index(mejor_hipotesis)
+                        categoria = CATEGORIAS_LABELS[idx]
                             
                         return categoria, mejor_score
 
@@ -111,14 +110,13 @@ if uploaded_file is not None:
             df_clasificado = st.session_state['df_clasificado']
             total_antes = len(df_clasificado)
 
-            # 1. Filtro de calidad (elimina descripciones basura por baja confianza)
+            # 1. Filtro de calidad
             es_corta = df_clasificado['Longitud'] < LONGITUD_CORTA
             pasa_corta = es_corta & (df_clasificado['Confianza'] >= UMBRAL_CORTO)
             pasa_normal = ~es_corta & (df_clasificado['Confianza'] >= UMBRAL_CONFIANZA)
             df_filtrado = df_clasificado[pasa_corta | pasa_normal].copy()
 
             # 2. ELIMINACIÓN ESTRICTA CON PANDAS
-            # Conservamos únicamente Hardware y Software. Lo que caiga en "Otros" desaparece.
             df_filtrado = df_filtrado[df_filtrado['Area_Asignada'].isin(["Hardware", "Software"])].copy()
 
             descartados = total_antes - len(df_filtrado)
