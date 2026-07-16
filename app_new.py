@@ -24,9 +24,14 @@ classifier = cargar_modelo()
 # para darle más contexto semántico al modelo y mejorar la precisión,
 # especialmente en español.
 CATEGORIAS_DESC = {
-    "Hardware": "Hardware: problemas con impresoras, computadoras, monitores, teclados, mouses, cables, dispositivos físicos que no encienden o no funcionan",
-    "Software": "Software: problemas con programas, licencias, instalaciones, actualizaciones, aplicaciones que no abren o dan error",
-    "Redes": "Redes: problemas de conexión a internet, wifi, módem, router, VPN, sin señal o conexión lenta",
+    "Hardware": "Falla física de un equipo o dispositivo: impresora, computadora, monitor, teclado, mouse, cable, "
+                "escáner o periférico que no enciende, no responde, hace ruido, se traba o está roto físicamente",
+    "Software": "Falla de un programa o aplicación instalada: error al abrir, se cierra solo, licencia vencida, "
+                "actualización fallida, mensaje de error en pantalla, problema al instalar un programa",
+    "Redes": "Falla de conectividad: sin acceso a internet, wifi que no conecta, VPN caída, conexión lenta o "
+             "intermitente, el router o módem sin luces o sin señal",
+    "Cuentas y Accesos": "Problemas de inicio de sesión, usuario o contraseña: no puede loguearse, olvidó la "
+                          "contraseña, cuenta bloqueada, permisos de acceso denegados, correo que no llega",
 }
 CATEGORIAS_LABELS = list(CATEGORIAS_DESC.keys())       # Nombres cortos (para mostrar en el resultado)
 CATEGORIAS_HIPOTESIS = list(CATEGORIAS_DESC.values())  # Descripciones largas (para alimentar al modelo)
@@ -121,20 +126,31 @@ if uploaded_file is not None:
                         res = classifier(
                             texto,
                             CATEGORIAS_HIPOTESIS,
-                            multi_label=True
+                            multi_label=True,
+                            # Template en español y orientado al dominio: mejora la
+                            # comparación semántica frente al template genérico en inglés
+                            hypothesis_template="Este reclamo de soporte técnico trata sobre: {}."
                         )
                         # res['labels'] viene ordenado por score descendente
                         mejor_hipotesis = res['labels'][0]
                         mejor_score = res['scores'][0]
+                        segunda_hipotesis = res['labels'][1]
+                        segundo_score = res['scores'][1]
                         # Traduce la hipótesis larga de vuelta al nombre corto de categoría
                         idx = CATEGORIAS_HIPOTESIS.index(mejor_hipotesis)
                         categoria = CATEGORIAS_LABELS[idx]
-                        return categoria, mejor_score
+                        idx2 = CATEGORIAS_HIPOTESIS.index(segunda_hipotesis)
+                        categoria_alternativa = CATEGORIAS_LABELS[idx2]
+                        # gap chico entre el 1er y 2do score = ambigüedad entre dos categorías
+                        gap = round(mejor_score - segundo_score, 3)
+                        return categoria, mejor_score, categoria_alternativa, gap
 
                     # Aplica la clasificación fila por fila sobre la columna de descripción
                     resultados = df[target_col].apply(clasificar_texto)
                     df['Area_Asignada'] = resultados.apply(lambda x: x[0])       # categoría asignada
                     df['Confianza'] = resultados.apply(lambda x: round(x[1], 3)) # score del modelo
+                    df['Area_Alternativa'] = resultados.apply(lambda x: x[2])    # segunda categoría más probable
+                    df['Ambiguedad'] = resultados.apply(lambda x: x[3])          # diferencia entre 1er y 2do score (chico = dudoso)
                     df['Longitud'] = df[target_col].str.len()                    # longitud del texto, usada en el filtro
 
                     # Se guarda en session_state para poder refiltrar con los
